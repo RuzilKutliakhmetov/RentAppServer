@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+// --------------------------------------------
+//  MODELS
+// --------------------------------------------
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  items     Item[]            @relation("UserItems")
+  rentals   Rental[]          @relation("UserRentals")
+  reviews   Review[]
+  payments  Payment[]
+  addresses Address[]
+  messages  Message[]         @relation("UserMessages")
+  chats     ChatParticipant[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  items Item[]
+
+  @@map("categories")
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  pricePerDay Float
+  deposit     Float?
+  imageUrls   String[]
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  ownerId String
+  owner   User   @relation("UserItems", fields: [ownerId], references: [id])
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  addressId String?
+  address   Address? @relation(fields: [addressId], references: [id])
+
+  rentals Rental[]
+  reviews Review[]
+
+  @@map("items")
+}
+
+model Rental {
+  id         String       @id @default(cuid())
+  startDate  DateTime
+  endDate    DateTime
+  totalPrice Float
+  status     RentalStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  // Relations
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  renterId String
+  renter   User   @relation("UserRentals", fields: [renterId], references: [id])
+
+  payment Payment?
+
+  chat   Chat?
+  chatId String? @unique
+
+  @@map("rentals")
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  amount    Float
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+
+  // Relations
+  rentalId String @unique
+  rental   Rental @relation(fields: [rentalId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  // Relations
+  itemId String
+  item   Item   @relation(fields: [itemId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("reviews")
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  label      String?
+  city       String
+  street     String
+  house      String?
+  apartment  String?
+  postalCode String?
+  lat        Float?
+  lng        Float?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  items Item[]
+
+  @@map("addresses")
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Relations
+  rentalId String? @unique
+  rental   Rental? @relation(fields: [rentalId], references: [id])
+
+  participants ChatParticipant[]
+  messages     Message[]
+
+  @@map("chats")
+}
+
+model ChatParticipant {
+  id     String @id @default(cuid())
+  chatId String
+  userId String
+
+  chat Chat @relation(fields: [chatId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([chatId, userId])
+  @@map("chat_participants")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+
+  // Relations
+  chatId String
+  chat   Chat   @relation(fields: [chatId], references: [id])
+
+  senderId String
+  sender   User   @relation("UserMessages", fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+// --------------------------------------------
+//  ENUMS
+// --------------------------------------------
+
+enum RentalStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  PAYPAL
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
