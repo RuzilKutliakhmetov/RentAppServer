@@ -1,0 +1,145 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Address {
+  apartment: String
+  city: String!
+  createdAt: DateTime!
+  house: String
+  id: ID!
+  items: [Item]
+  label: String
+  lat: Float
+  lng: Float
+  postalCode: String
+  street: String!
+  user: User!
+}
+
+type Category {
+  createdAt: DateTime!
+  icon: String
+  id: ID!
+  items: [Item]
+  name: String!
+  slug: String!
+}
+
+type Chat {
+  createdAt: DateTime!
+  id: ID!
+  messages: [Message]
+  participants: [ChatParticipant]
+  rental: Rental
+}
+
+type ChatParticipant {
+  chat: Chat!
+  id: ID!
+  user: User!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Item {
+  address: Address
+  available: Boolean!
+  category: Category!
+  createdAt: DateTime!
+  deposit: Float
+  description: String!
+  id: ID!
+  imageUrls: [String!]!
+  owner: User!
+  pricePerDay: Float!
+  rentals: [Rental]
+  reviews: [Review]
+  title: String!
+  updatedAt: DateTime!
+}
+
+type Message {
+  chat: Chat!
+  createdAt: DateTime!
+  id: ID!
+  read: Boolean!
+  sender: User!
+  text: String!
+}
+
+type Payment {
+  amount: Float!
+  createdAt: DateTime!
+  id: ID!
+  method: PaymentMethod!
+  rental: Rental!
+  status: PaymentStatus!
+  user: User!
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  PAYPAL
+  STRIPE
+}
+
+enum PaymentStatus {
+  FAILED
+  PENDING
+  SUCCESS
+}
+
+type Query {
+  findAllUsers: [User!]!
+}
+
+type Rental {
+  chat: Chat
+  createdAt: DateTime!
+  endDate: DateTime!
+  id: ID!
+  item: Item!
+  payment: Payment
+  renter: User!
+  startDate: DateTime!
+  status: RentalStatus!
+  totalPrice: Float!
+}
+
+enum RentalStatus {
+  ACTIVE
+  CANCELLED
+  COMPLETED
+  PENDING
+}
+
+type Review {
+  comment: String
+  createdAt: DateTime!
+  id: ID!
+  item: Item!
+  rating: Int!
+  user: User!
+}
+
+type User {
+  addresses: [Address]
+  avatarUrl: String
+  chats: [ChatParticipant]
+  createdAt: DateTime!
+  email: String!
+  id: ID!
+  items: [Item]
+  messages: [Message]
+  name: String
+  payments: [Payment]
+  phone: String
+  rentals: [Rental]
+  reviews: [Review]
+  updatedAt: DateTime!
+}
